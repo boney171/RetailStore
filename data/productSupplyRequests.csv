@@ -1,0 +1,11 @@
+requestNumber,managerID,warehouseID,storeID,productName,unitsRequested
+1,25,1,1,Pepsi,81
+2,20,2,2,Lemonade,21
+3,10,3,3,Brisk,30
+4,20,4,4,Orange Juice,75
+5,40,5,5,Donuts,36
+6,51,1,6,Pudding,64
+7,10,2,7,Ice Cream,62
+8,51,3,8,Hot and Sour Soup,74
+9,87,4,9,Egg,71
+10,51,5,10,7up,64

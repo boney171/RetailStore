@@ -1,0 +1,201 @@
+storeID,productName,numberOfUnits,pricePerUnit
+1,7up,47,3
+1,Pepsi,33,4
+1,Lemonade,41,8
+1,Brisk,37,3
+1,Orange Juice,42,6
+1,Donuts,80,7
+1,Pudding,23,3
+1,Ice Cream,39,6
+1,Hot and Sour Soup,78,5
+1,Egg,83,3
+2,7up,71,3
+2,Pepsi,65,4
+2,Lemonade,83,8
+2,Brisk,83,3
+2,Orange Juice,36,6
+2,Donuts,94,7
+2,Pudding,53,3
+2,Ice Cream,41,6
+2,Hot and Sour Soup,46,5
+2,Egg,81,3
+3,7up,21,3
+3,Pepsi,30,4
+3,Lemonade,75,8
+3,Brisk,36,3
+3,Orange Juice,64,6
+3,Donuts,62,7
+3,Pudding,74,3
+3,Ice Cream,71,6
+3,Hot and Sour Soup,64,5
+3,Egg,96,3
+4,7up,87,3
+4,Pepsi,29,4
+4,Lemonade,53,8
+4,Brisk,81,3
+4,Orange Juice,94,6
+4,Donuts,45,7
+4,Pudding,71,3
+4,Ice Cream,48,6
+4,Hot and Sour Soup,30,5
+4,Egg,92,3
+5,7up,46,3
+5,Pepsi,69,4
+5,Lemonade,100,8
+5,Brisk,24,3
+5,Orange Juice,48,6
+5,Donuts,42,7
+5,Pudding,41,3
+5,Ice Cream,95,6
+5,Hot and Sour Soup,94,5
+5,Egg,25,3
+6,7up,23,3
+6,Pepsi,86,4
+6,Lemonade,83,8
+6,Brisk,80,3
+6,Orange Juice,26,6
+6,Donuts,58,7
+6,Pudding,92,3
+6,Ice Cream,58,6
+6,Hot and Sour Soup,98,5
+6,Egg,38,3
+7,7up,41,3
+7,Pepsi,21,4
+7,Lemonade,47,8
+7,Brisk,48,3
+7,Orange Juice,44,6
+7,Donuts,89,7
+7,Pudding,64,3
+7,Ice Cream,66,6
+7,Hot and Sour Soup,29,5
+7,Egg,50,3
+8,7up,77,3
+8,Pepsi,73,4
+8,Lemonade,78,8
+8,Brisk,38,3
+8,Orange Juice,54,6
+8,Donuts,100,7
+8,Pudding,32,3
+8,Ice Cream,63,6
+8,Hot and Sour Soup,50,5
+8,Egg,56,3
+9,7up,39,3
+9,Pepsi,93,4
+9,Lemonade,90,8
+9,Brisk,88,3
+9,Orange Juice,33,6
+9,Donuts,74,7
+9,Pudding,78,3
+9,Ice Cream,40,6
+9,Hot and Sour Soup,97,5
+9,Egg,56,3
+10,7up,94,3
+10,Pepsi,57,4
+10,Lemonade,70,8
+10,Brisk,59,3
+10,Orange Juice,57,6
+10,Donuts,32,7
+10,Pudding,58,3
+10,Ice Cream,26,6
+10,Hot and Sour Soup,40,5
+10,Egg,65,3
+11,7up,50,3
+11,Pepsi,21,4
+11,Lemonade,42,8
+11,Brisk,27,3
+11,Orange Juice,45,6
+11,Donuts,37,7
+11,Pudding,13,3
+11,Ice Cream,33,6
+11,Hot and Sour Soup,43,5
+11,Egg,15,3
+12,7up,28,3
+12,Pepsi,32,4
+12,Lemonade,26,8
+12,Brisk,48,3
+12,Orange Juice,41,6
+12,Donuts,39,7
+12,Pudding,24,3
+12,Ice Cream,50,6
+12,Hot and Sour Soup,46,5
+12,Egg,38,3
+13,7up,32,3
+13,Pepsi,12,4
+13,Lemonade,11,8
+13,Brisk,22,3
+13,Orange Juice,16,6
+13,Donuts,25,7
+13,Pudding,23,3
+13,Ice Cream,25,6
+13,Hot and Sour Soup,12,5
+13,Egg,41,3
+14,7up,15,3
+14,Pepsi,18,4
+14,Lemonade,16,8
+14,Brisk,48,3
+14,Orange Juice,22,6
+14,Donuts,31,7
+14,Pudding,13,3
+14,Ice Cream,15,6
+14,Hot and Sour Soup,38,5
+14,Egg,36,3
+15,7up,38,3
+15,Pepsi,15,4
+15,Lemonade,14,8
+15,Brisk,19,3
+15,Orange Juice,14,6
+15,Donuts,27,7
+15,Pudding,50,3
+15,Ice Cream,10,6
+15,Hot and Sour Soup,22,5
+15,Egg,31,3
+16,7up,39,3
+16,Pepsi,40,4
+16,Lemonade,34,8
+16,Brisk,16,3
+16,Orange Juice,49,6
+16,Donuts,23,7
+16,Pudding,15,3
+16,Ice Cream,47,6
+16,Hot and Sour Soup,31,5
+16,Egg,22,3
+17,7up,14,3
+17,Pepsi,48,4
+17,Lemonade,33,8
+17,Brisk,44,3
+17,Orange Juice,44,6
+17,Donuts,10,7
+17,Pudding,17,3
+17,Ice Cream,34,6
+17,Hot and Sour Soup,39,5
+17,Egg,37,3
+18,7up,27,3
+18,Pepsi,40,4
+18,Lemonade,47,8
+18,Brisk,34,3
+18,Orange Juice,11,6
+18,Donuts,19,7
+18,Pudding,44,3
+18,Ice Cream,43,6
+18,Hot and Sour Soup,36,5
+18,Egg,33,3
+19,7up,21,3
+19,Pepsi,47,4
+19,Lemonade,31,8
+19,Brisk,10,3
+19,Orange Juice,45,6
+19,Donuts,18,7
+19,Pudding,23,3
+19,Ice Cream,10,6
+19,Hot and Sour Soup,30,5
+19,Egg,14,3
+20,7up,14,3
+20,Pepsi,14,4
+20,Lemonade,48,8
+20,Brisk,12,3
+20,Orange Juice,47,6
+20,Donuts,38,7
+20,Pudding,32,3
+20,Ice Cream,47,6
+20,Hot and Sour Soup,10,5
+20,Egg,15,3
