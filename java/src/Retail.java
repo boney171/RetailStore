@@ -232,6 +232,9 @@ public class Retail {
     *
     * @param args the command line arguments this inclues the <mysql|pgsql> <login file>
     */
+       String user1;
+       String pw1;
+
    public static void main (String[] args) {
       if (args.length != 3) {
          System.err.println (
@@ -241,7 +244,6 @@ public class Retail {
             " <dbname> <port> <user>");
          return;
       }//end if
-
       Greeting();
       Retail esql = null;
       try{
@@ -253,7 +255,7 @@ public class Retail {
          String dbport = args[1];
          String user = args[2];
          esql = new Retail (dbname, dbport, user, "");
-
+	
          boolean keepon = true;
          while(keepon) {
             // These are sample SQL statements
@@ -289,7 +291,7 @@ public class Retail {
                 System.out.println(".........................");
                 System.out.println("20. Log out");
                 switch (readChoice()){
-                   case 1: viewStores(esql); break;
+                   case 1: viewStores(esql,authorisedUser); break;
                    case 2: viewProducts(esql); break;
                    case 3: placeOrder(esql); break;
                    case 4: viewRecentOrders(esql); break;
@@ -364,7 +366,7 @@ public class Retail {
          
          String type="Customer";
 
-			String query = String.format("INSERT INTO USERS (name, password, latitude, longitude, type) VALUES ('%s','%s', %s, %s,'%s')", name, password, latitude, longitude, type);
+String query = String.format("INSERT INTO USERS (name, password, latitude, longitude, type) VALUES ('%s','%s', %s, %s,'%s')", name, password, latitude, longitude, type);
 
          esql.executeUpdate(query);
          System.out.println ("User successfully created!");
@@ -384,7 +386,9 @@ public class Retail {
          String name = in.readLine();
          System.out.print("\tEnter password: ");
          String password = in.readLine();
-
+	 
+	//Store user and password
+	
          String query = String.format("SELECT * FROM USERS WHERE name = '%s' AND password = '%s'", name, password);
          int userNum = esql.executeQuery(query);
 	 if (userNum > 0)
@@ -398,8 +402,31 @@ public class Retail {
 
 // Rest of the functions definition go in here
 
-   public static void viewStores(Retail esql) {}
-   public static void viewProducts(Retail esql) {}
+   public static void viewStores(Retail esql, String name) {
+	 try{
+       //  System.out.println("Hello It's me mtfker!");
+//	System.out.println(name);
+	String query = String.format("SELECT s.storeID, s.name, calculate_distance(u.latitude, u.longitude, s.latitude, s.latitude) as dist FROM Users u, store s WHERE u.name='%s' and calculate_distance(u.latitude, u.longitude, s.latitude, s.longitude) < 30",name);
+
+	int q = esql.executeQueryAndPrintResult(query);
+	System.out.println("total row(s): " + q);
+      }catch(Exception e){
+         System.err.println (e.getMessage ());
+         return;
+      }
+
+}
+   public static void viewProducts(Retail esql) {
+	 try{
+	System.out.println("\tEnter store ID number: ");
+	String id = in.readLine();
+	String query = String.format("SELECT P.productName, P.numberOfUnits, P.pricePerUnit FROM Product P WHERE P.storeID = '%s'", id);
+	int q = esql.executeQueryAndPrintResult(query);		
+         }catch(Exception e){
+		System.err.println (e.getMessage ());
+	return;
+	}
+}
    public static void placeOrder(Retail esql) {}
    public static void viewRecentOrders(Retail esql) {}
    public static void updateProduct(Retail esql) {}
