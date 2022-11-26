@@ -232,9 +232,8 @@ public class Retail {
     *
     * @param args the command line arguments this inclues the <mysql|pgsql> <login file>
     */
-       String user1;
-       String pw1;
-
+        public static int i = 535;
+	public static String uId;
    public static void main (String[] args) {
       if (args.length != 3) {
          System.err.println (
@@ -255,7 +254,6 @@ public class Retail {
          String dbport = args[1];
          String user = args[2];
          esql = new Retail (dbname, dbport, user, "");
-	
          boolean keepon = true;
          while(keepon) {
             // These are sample SQL statements
@@ -291,7 +289,7 @@ public class Retail {
                 System.out.println(".........................");
                 System.out.println("20. Log out");
                 switch (readChoice()){
-                   case 1: viewStores(esql,authorisedUser); break;
+                   case 1: viewStores(esql); break;
                    case 2: viewProducts(esql); break;
                    case 3: placeOrder(esql); break;
                    case 4: viewRecentOrders(esql); break;
@@ -388,11 +386,21 @@ String query = String.format("INSERT INTO USERS (name, password, latitude, longi
          String password = in.readLine();
 	 
 	//Store user and password
-	
+
          String query = String.format("SELECT * FROM USERS WHERE name = '%s' AND password = '%s'", name, password);
-         int userNum = esql.executeQuery(query);
-	 if (userNum > 0)
+	 
+	int userNum = esql.executeQuery(query);
+	 if (userNum > 0){
+		 //These extra operations are to extract userId to be used through out the whole program
+		  String query2 = String.format("SELECT userId FROM USERS WHERE name = '%s' AND password = '%s'", name, password);
+      	//	public static List<List<String>> userInfo;
+        //	public static List<String> info;
+                List<List<String>> userInfo = esql.executeQueryAndReturnResult(query2);
+		List<String>  info = userInfo.get(0);
+		 //uId is global varible that contains the current's userId
+		  uId = info.get(0);	
 		return name;
+	}
          return null;
       }catch(Exception e){
          System.err.println (e.getMessage ());
@@ -402,11 +410,11 @@ String query = String.format("INSERT INTO USERS (name, password, latitude, longi
 
 // Rest of the functions definition go in here
 
-   public static void viewStores(Retail esql, String name) {
+   public static void viewStores(Retail esql) {
 	 try{
-       //  System.out.println("Hello It's me mtfker!");
-//	System.out.println(name);
-	String query = String.format("SELECT s.storeID, s.name, calculate_distance(u.latitude, u.longitude, s.latitude, s.latitude) as dist FROM Users u, store s WHERE u.name='%s' and calculate_distance(u.latitude, u.longitude, s.latitude, s.longitude) < 30",name);
+     //    System.out.println("Hello It's me mtfker!");
+//	System.out.println(uId);
+	String query = String.format("SELECT s.storeID, s.name, calculate_distance(u.latitude, u.longitude, s.latitude, s.latitude) as dist FROM Users u, store s WHERE u.userId='%s' and calculate_distance(u.latitude, u.longitude, s.latitude, s.longitude) < 30",uId);
 
 	int q = esql.executeQueryAndPrintResult(query);
 	System.out.println("total row(s): " + q);
@@ -427,9 +435,126 @@ String query = String.format("INSERT INTO USERS (name, password, latitude, longi
 	return;
 	}
 }
-   public static void placeOrder(Retail esql) {}
+   public static void placeOrder(Retail esql) {
+	try{
+        //Get Store ID
+	System.out.println("\tEnter store ID number in your area:  \n\t");
+        String storeId = in.readLine();
+	String query1 = String.format("SELECT * FROM STORE WHERE storeID = '%s' AND storeID IN", storeId);
+        String query2 = String.format("(SELECT s.storeID  FROM Users u, store s WHERE u.userId='%s' and calculate_distance(u.latitude, u.longitude, s.latitude, s.longitude) < 30)",uId);
+	query1 = query1 + query2;
+	int q = esql.executeQuery(query1);
+	//If user pick a store not in his/her area, make he/she pick again!
+	while( q == 0)
+	{
+		System.out.println("\tYour selected store is not in your area, select another store in you area: \n\t");
+		storeId = in.readLine();
+		query1 = String.format("SELECT * FROM STORE WHERE storeID = '%s' AND storeID IN", storeId);
+        	query2 = String.format("(SELECT s.storeID  FROM Users u, store s WHERE u.userId='%s' and calculate_distance(u.latitude, u.longitude, s.latitude, s.longitude) < 30)",uId);
+        	query1 = query1 + query2;
+        	q = esql.executeQuery(query1);
+	}
+	//Get ProductName
+	System.out.println("\tEnter product's name: \n\t");
+	String productName = in.readLine();
+	query1 = String.format("SELECT * FROM Product P WHERE P.storeID = '%s' AND P.productName = '%s'", storeId, productName);
+	q = esql.executeQuery(query1);
+	//If product does not exist, make he/she pick again!
+	while(q == 0)
+	{
+		System.out.println("\tYour selected product does not exist, pick another product: \n\t");
+		productName = in.readLine();
+		q = esql.executeQuery(query1);
+	}
+	//Get numberOfUnits
+	System.out.println("\tEnter the amount: \n\t");
+	String amount = in.readLine();
+	query1 = String.format("SELECT * FROM Product P WHERE P.storeID = '%s' AND P.productName = '%s' AND P.numberOfUnits >= '%s'", storeId, productName, amount);
+	//query2 = String.format("SELECT * FROM Product P WHERE P.storeID = '%s' AND P.productName = '%s' AND P.numberOfUnits >= '%s'", storeId, productName, amount);
+	q = esql.executeQuery(query1);
+	//q = esql.executeQueryAndPrintResult(query2);
+	//If amount exceed in-stock amount, make he/she enter a new amount
+	while(q == 0)
+	{	
+		System.out.println("\tYour selected amount exceeded our in-stock amount, please enter a new amount: \n\t");
+		amount = in.readLine();
+		query1 = String.format("SELECT * FROM Product P WHERE P.storeID = '%s' AND P.productName = '%s' AND P.numberOfUnits >= '%s'", storeId, productName, amount);
+		q = esql.executeQuery(query1);
+	}
+	System.out.println("\tCompleting your orders... Succeed!");
+	//Input order into order relation
+	String orderNumber = String.valueOf(i);
+	i++;
+	query2 = String.format("INSERT INTO Orders(orderNumber,customerID,storeID,productName,unitsOrdered,orderTime) VALUES('%s','%s','%s','%s','%s',NOW())",orderNumber,uId,storeId,productName,amount);
+	esql.executeUpdate(query2);
+	//Update products relationn
+	 query2 = String.format("UPDATE Product SET numberOfUnits = numberOfUnits - '%s' WHERE storeID = '%s' AND productName = '%s'", amount, storeId, productName);
+	 esql.executeUpdate(query2);
+         }catch(Exception e){
+                System.err.println (e.getMessage ());
+        return;
+        }
+	
+}
    public static void viewRecentOrders(Retail esql) {}
-   public static void updateProduct(Retail esql) {}
+   public static void updateProduct(Retail esql){               
+  try{
+        //Check if a user is a customer or an admin or a manager
+        String query = String.format("SELECT * FROM Users WHERE userID = '%s' AND type = 'customer'",uId );
+        int q = esql.executeQuery(query);
+	if( q == 1){ //User is a customer, return to main menu
+		System.out.println("Unauthorised user, return to main menu!");
+		return;
+	}
+	//User is either an admin or a manager
+	//Check if a user is an admin
+	query = String.format("SELECT * FROM Users WHERE userID = '%s' AND type = 'admin'",uId );
+	q = esql.executeQuery(query);
+	if(q == 1 ){
+	//Functionality of admin
+	 System.out.println("Hello Admin, suck mah D");
+	}
+	else{
+	System.out.println("Hello manager, ligmad");
+	System.out.println("Enter a store ID: ");
+	String storeId = in.readLine();
+	//Check if the this manager manages the store
+	query = String.format("SELECT * FROM STORE WHERE storeID = '%s' AND managerID = '%s'", storeId,uId);
+	q = esql.executeQueryAndPrintResult(query);
+	q = esql.executeQuery(query);
+	//Keep looping until the user enter a valid storeId
+	while( q == 0)
+{
+	System.out.println("Sorry you'are not managing this store, select another store: ");
+	storeId = in.readLine();	
+	query = String.format("SELECT * FROM STORE WHERE storeID = '%s' AND managerID = '%s'", storeId,uId);
+ 
+       //q = esql.executeQueryAndPrintResult(query);
+        q = esql.executeQuery(query);
+
+}
+	System.out.println("You are managing this store!");
+	System.out.println("Select the product that you want to update: ");
+	String productName = in.readLine();
+	//Check if the product exists in the store;
+	query = String.format("SELECT * FROM Product WHERE storeID = '%s' AND productName = '%s'", storeId, productName);
+	q = esql.executeQueryAndPrintResult(query);
+	q = esql.executeQuery(query);
+	while(q == 0) //Product is not inside the store, loop until get the valid product
+{
+	System.out.println("Your selected product does not exists, select another product: ");
+	productName = in.readLine();
+	query = String.format("SELECT * FROM Product WHERE storeID = '%s' AND productName = '%s'", storeId, productName);
+	q = esql.executeQuery(query);	
+}
+	System.out.println("Successful!");
+	}
+
+      }catch(Exception e){
+                System.err.println (e.getMessage ());
+        return;
+        }
+}
    public static void viewRecentUpdates(Retail esql) {}
    public static void viewPopularProducts(Retail esql) {}
    public static void viewPopularCustomers(Retail esql) {}
