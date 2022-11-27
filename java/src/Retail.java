@@ -232,7 +232,8 @@ public class Retail {
     *
     * @param args the command line arguments this inclues the <mysql|pgsql> <login file>
     */
-        public static int i = 535;
+        public static int i = 505;//Order number, will be incremented everytime a new order comes in
+	public static int j = 55;//Update number, will be incremented everytime a new update comes in
 	public static String uId;
    public static void main (String[] args) {
       if (args.length != 3) {
@@ -393,8 +394,6 @@ String query = String.format("INSERT INTO USERS (name, password, latitude, longi
 	 if (userNum > 0){
 		 //These extra operations are to extract userId to be used through out the whole program
 		  String query2 = String.format("SELECT userId FROM USERS WHERE name = '%s' AND password = '%s'", name, password);
-      	//	public static List<List<String>> userInfo;
-        //	public static List<String> info;
                 List<List<String>> userInfo = esql.executeQueryAndReturnResult(query2);
 		List<String>  info = userInfo.get(0);
 		 //uId is global varible that contains the current's userId
@@ -412,8 +411,6 @@ String query = String.format("INSERT INTO USERS (name, password, latitude, longi
 
    public static void viewStores(Retail esql) {
 	 try{
-     //    System.out.println("Hello It's me mtfker!");
-//	System.out.println(uId);
 	String query = String.format("SELECT s.storeID, s.name, calculate_distance(u.latitude, u.longitude, s.latitude, s.latitude) as dist FROM Users u, store s WHERE u.userId='%s' and calculate_distance(u.latitude, u.longitude, s.latitude, s.longitude) < 30",uId);
 
 	int q = esql.executeQueryAndPrintResult(query);
@@ -496,7 +493,23 @@ String query = String.format("INSERT INTO USERS (name, password, latitude, longi
         }
 	
 }
-   public static void viewRecentOrders(Retail esql) {}
+   public static void viewRecentOrders(Retail esql) {
+   try{
+      //Check if user is a customer
+       String query = String.format("SELECT * FROM Users WHERE userID = '%s' AND type = 'customer'",uId );
+       int q = esql.executeQuery(query);
+       //If user is a customer, show 5 most recent orders
+       if( q == 1){
+       System.out.println("View 5 most recent orders: ");
+       query = String.format("SELECT O.storeID as ID, S.name as SName,O.productName, O.unitsOrdered as Number, O.orderTime as Date FROM Orders O,Store S WHERE O.storeID = S.storeID AND customerID = '%s' ORDER BY orderTime DESC LIMIT 5", uId);
+       q = esql.executeQueryAndPrintResult(query);
+       }
+	return;
+      }catch(Exception e){
+         System.err.println (e.getMessage ());
+         return;
+      }
+}
    public static void updateProduct(Retail esql){               
   try{
         //Check if a user is a customer or an admin or a manager
@@ -512,15 +525,57 @@ String query = String.format("INSERT INTO USERS (name, password, latitude, longi
 	q = esql.executeQuery(query);
 	if(q == 1 ){
 	//Functionality of admin
-	 System.out.println("Hello Admin, suck mah D");
-	}
-	else{
+	//Admin should be able to update any product
+	System.out.println("Welcome admin, select a storeID: ");
+	String storeId = in.readLine();
+	query = String.format("SELECT * from Store S WHERE S.storeID = '%s'", storeId);
+        q = esql.executeQuery(query);
+	//Check if a selected store exists, if not, keep looping until store
+	while( q == 0)
+{
+	System.out.println("Selected Store does not exists, select a valid storeID: ");
+	storeId = in.readLine();
+
+	query = String.format("SELECT * from Store S WHERE S.storeID = '%s'", storeId);
+        q = esql.executeQuery(query);	
+}	
+//Get product information
+	System.out.println("Select the product that you want to update: ");
+        String productName = in.readLine();
+	query = String.format("SELECT * FROM Product WHERE storeID = '%s' AND productName = '%s'", storeId, productName);
+       //Check if the selected product exist
+        q = esql.executeQuery(query);
+       //If not exists, keep looping until get a valid product name
+	 while(q == 0)
+ {
+        System.out.println("Your selected product does not exists, select another product: ");
+        productName = in.readLine();
+        query = String.format("SELECT * FROM Product WHERE storeID = '%s' AND productName = '%s'", storeId, productName);
+        q = esql.executeQuery(query);
+}
+
+	System.out.println("\tEnter a new number of available unit: ");
+        String numberOfUnits = in.readLine();
+
+        System.out.println("\tEnter a new price per unit: ");
+        String pricePerUnit = in.readLine();
+
+        System.out.println(" Successful!");
+	//Update the new information into the product relation
+	query = String.format("UPDATE Product SET numberOfUnits = '%s', pricePerUnit = '%s' WHERE storeID = '%s' AND productName = '%s'", numberOfUnits, pricePerUnit, storeId, productName);
+        esql.executeUpdate(query);
+	//Update the new update information into the ProductUpdates relation
+	query = String.format("INSERT INTO ProductUpdates(updateNumber, managerID,storeID,productName,updatedOn) VALUES('%s','%s','%s','%s',NOW())",j, uId, storeId, productName );
+        esql.executeUpdate(query);
+	j++;
+	}//End functionality of admin
+	else{ //Start functionality of the manager
 	System.out.println("Hello manager, ligmad");
 	System.out.println("Enter a store ID: ");
 	String storeId = in.readLine();
 	//Check if the this manager manages the store
 	query = String.format("SELECT * FROM STORE WHERE storeID = '%s' AND managerID = '%s'", storeId,uId);
-	q = esql.executeQueryAndPrintResult(query);
+	//q = esql.executeQueryAndPrintResult(query);
 	q = esql.executeQuery(query);
 	//Keep looping until the user enter a valid storeId
 	while( q == 0)
@@ -538,7 +593,7 @@ String query = String.format("INSERT INTO USERS (name, password, latitude, longi
 	String productName = in.readLine();
 	//Check if the product exists in the store;
 	query = String.format("SELECT * FROM Product WHERE storeID = '%s' AND productName = '%s'", storeId, productName);
-	q = esql.executeQueryAndPrintResult(query);
+	//q = esql.executeQueryAndPrintResult(query);
 	q = esql.executeQuery(query);
 	while(q == 0) //Product is not inside the store, loop until get the valid product
 {
@@ -546,10 +601,23 @@ String query = String.format("INSERT INTO USERS (name, password, latitude, longi
 	productName = in.readLine();
 	query = String.format("SELECT * FROM Product WHERE storeID = '%s' AND productName = '%s'", storeId, productName);
 	q = esql.executeQuery(query);	
-}
-	System.out.println("Successful!");
-	}
+}	
+	//Get the numberOfUnits and pricePerUnit 
+	System.out.println("\tEnter a new number of available unit: ");
+	String numberOfUnits = in.readLine();
 
+	System.out.println("\tEnter a new price per unit: ");
+	String pricePerUnit = in.readLine();
+
+	System.out.println(" Successful!");
+	//Update the new information into the product relation
+	query = String.format("UPDATE Product SET numberOfUnits = '%s', pricePerUnit = '%s' WHERE storeID = '%s' AND productName = '%s'", numberOfUnits, pricePerUnit, storeId, productName);
+	esql.executeUpdate(query);
+	//Update the new update information into the ProductUpdates relation
+	query = String.format("INSERT INTO ProductUpdates(updateNumber, managerID,storeID,productName,updatedOn) VALUES('%s','%s','%s','%s',NOW())",j, uId, storeId, productName );
+	esql.executeUpdate(query);
+	j++;
+	}//End functionality of manager
       }catch(Exception e){
                 System.err.println (e.getMessage ());
         return;
