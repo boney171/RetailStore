@@ -30,6 +30,7 @@ import java.lang.Math;
  * work with PostgreSQL JDBC drivers.
  *
  */
+
 public class Retail {
 
    // reference to physical database connection.
@@ -234,6 +235,7 @@ public class Retail {
     */
         public static int i = 505;//Order number, will be incremented everytime a new order comes in
 	public static int j = 55;//Update number, will be incremented everytime a new update comes in
+	public static int u = 106;//User ID number, will be incremented everytime a new user is inserted
 	public static String uId;
    public static void main (String[] args) {
       if (args.length != 3) {
@@ -661,15 +663,219 @@ String query = String.format("INSERT INTO USERS (name, password, latitude, longi
    public static void viewPopularProducts(Retail esql) {}
    public static void viewPopularCustomers(Retail esql) {}
    public static void placeProductSupplyRequests(Retail esql) {}
-   public static void viewOrders(Retail esql){};
-   public static void viewUsers(Retail esql){};
-   public static void addUsers(Retail esql){};
-   public static void addProducts(Retail esql){};
-   public static void removeUsers(Retail esql){};
-   public static void removeProducts(Retail esql){};
-   	  
-		 
+   public static void viewOrders(Retail esql){
+	 try{
+        //Check if user is an admin or not
+        String query = String.format("SELECT * FROM Users WHERE userID = '%s' AND type = 'admin'",uId );
+        int q = esql.executeQuery(query);
+        if(q == 1){//User is an admin
+ 		query = "Select * FROM Orders";
+                q = esql.executeQueryAndPrintResult(query);
+                return;
+        }
+        query = String.format("SELECT * FROM Users WHERE userID = '%s' AND type = 'manager'",uId );
+        q = esql.executeQuery(query);
+ 	if(q == 1){//User is an manager
+	 	query = String.format("SELECT DISTINCT O.orderNumber as orderID, U.name as customer_name, O.storeID, O.productName, O.orderTime as date FROM Orders O, Users U WHERE O.customerID = U.userID AND O.storeID IN (SELECT S.storeID FROM  Store S, Users U WHERE S.managerID = U.userID AND U.userID = '%s') ORDER by O.orderTime DESC", uId);
+                q = esql.executeQueryAndPrintResult(query);
+                return;
+        }
+	System.out.println("Unauthorised user, return to main menu!");
+	return;       
+        }catch(Exception e){
+                System.err.println (e.getMessage ());
+        return;
+        }
 
+};
+   public static void viewUsers(Retail esql){
+	 try{
+        //Check if user is an admin or not
+	String query = String.format("SELECT * FROM Users WHERE userID = '%s' AND type = 'admin'",uId );	
+        int q = esql.executeQuery(query);
+	if(q == 1){//User is an admin
+		 query = "Select * FROM Users";
+		q = esql.executeQueryAndPrintResult(query);
+		return;
+	}else{
+		System.out.println("Unauthorised user, return to main menu!");
+		return;
+	}	
+         }catch(Exception e){
+                System.err.println (e.getMessage ());
+        return;
+        }		
+};
+   public static void addUsers(Retail esql){
+        try{
+        //Check if user is an admin or not
+	String query = String.format("SELECT * FROM Users WHERE userID = '%s' AND type = 'admin'",uId );
+        int q = esql.executeQuery(query);
+        if(q == 1){//User is an admin
+                //Enter user ID or name
+                System.out.println("Enter new user's name/ID: ");
+		String name = in.readLine();
+		while(name.length() == 0){
+			System.out.println("Name/ID can not be empty, enter a new name: ");
+			name = in.readLine();
+		}
+		System.out.println("Enter a password (At least 3 characters long): ");
+		String password = in.readLine();
+		while(password.length() < 3){
+			System.out.println("Your selected password is too short, enter a new password: ");
+			password = in.readLine();
+		}
+		System.out.println("Enter latitude: ");
+		String latitude = in.readLine();
+		while(latitude.length() == 0){
+			System.out.println("Latitude can not be empty, re-enter latitude: ");
+			latitude = in.readLine();
+		}
+		System.out.println("Enter longitude: ");
+		String longitude = in.readLine();
+		while(longitude.length() == 0){
+                	System.out.println("Longtitude can not be empty, re-enter longitude: ");
+                	longitude = in.readLine();
+                }
+		System.out.println("Select the user's type (admin,customer,manager): ");
+		String type = in.readLine();
+		query = String.format("INSERT INTO Users(userID,name,password,latitude,longitude,type) VALUES('%s','%s','%s','%s','%s','%s')", u,name,password,latitude,longitude,type);
+		u++;
+		System.out.println("Successful!!");
+		esql.executeUpdate(query);		
+                return;
+        }else{
+                System.out.println("Unauthorised user, return to main menu!");
+                return;
+        }
+         }catch(Exception e){
+                System.err.println (e.getMessage ());
+        return;
+        }
 
-}//end Retail
+};
+   public static void addProducts(Retail esql){
+	 try{
+        //Check if user is an admin or not
+	String query = String.format("SELECT * FROM Users WHERE userID = '%s' AND type = 'admin'",uId );
+        int q = esql.executeQuery(query);
+	 if(q == 1){//User is an admin
+		System.out.println("Select a storeID: ");
+		String storeId = in.readLine();
+		//Check if storeID exists
+		query = String.format("SELECT * from Store S WHERE S.storeID = '%s'", storeId);
+        	q = esql.executeQuery(query);
+	        //If not, ask admin to enter a new storeId
+		 while( q == 0)
+{
+        System.out.println("Selected Store does not exists, select a valid storeID: ");
+        storeId = in.readLine();
 
+        query = String.format("SELECT * from Store S WHERE S.storeID = '%s'", storeId);
+        q = esql.executeQuery(query);
+}
+	System.out.println("Enter product name: ");
+	String productName = in.readLine();
+	System.out.println("Enter number of available units: ");
+	String numberOfUnits = in.readLine();
+	while(numberOfUnits.length() == 0 || isNumeric(numberOfUnits) == false){
+		System.out.println("Invalid input, enter a new number of available units: ");
+		numberOfUnits = in.readLine();
+}
+	System.out.println("Enter price per unit: ");
+	String price = in.readLine();
+	while(price.length() == 0 || isNumeric(price) == false){
+		System.out.println("Invalid input, enter a new number of price: ");
+		price = in.readLine();
+	}	
+	query = String.format("INSERT INTO Product(storeID, productName, numberOfUnits, pricePerUnit) VALUES('%s','%s','%s','%s')", storeId,productName,numberOfUnits,price);
+	esql.executeUpdate(query);
+	System.out.println("Successful!!");
+                return;
+        }else{
+                System.out.println("Unauthorised user, return to main menu!");
+                return;
+        }
+         }catch(Exception e){
+                System.err.println (e.getMessage ());
+        return;
+        }
+
+};
+   public static void removeUsers(Retail esql){
+	   try{
+    String query = String.format("SELECT * FROM Users WHERE userID = '%s' AND type = 'admin'",uId );
+        int q = esql.executeQuery(query);
+        if( q == 1){
+                System.out.println("Select a userID to be removed: ");
+                String id = in.readLine();
+
+                query = String.format("SELECT * FROM USERS WHERE userID = '%s'", id);
+                q = esql.executeQuery(query);
+                while(q == 0){
+                        System.out.println("Selected user does not exists, enter another userID: ");
+                        id = in.readLine();
+                        q = esql.executeQuery(query);
+                }
+                query = String.format("DELETE  FROM Users WHERE userID = '%s'", id);
+                esql.executeUpdate(query);                                                                                                                                                                    System.out.println("Successful!");
+                return;
+                }else{
+                System.out.println("Unauthorised user, return to main menu!");
+                }     
+      }catch(Exception e){
+         System.err.println (e.getMessage ());
+         return;
+      }	
+};
+   public static void removeProducts(Retail esql){
+ 	      try{
+    String query = String.format("SELECT * FROM Users WHERE userID = '%s' AND type = 'admin'",uId );
+        int q = esql.executeQuery(query);
+        if( q == 1){
+                //Get storeId from user
+		System.out.println("Select a storeID: ");
+                String id = in.readLine();
+
+                query = String.format("SELECT * FROM Store WHERE storeID = '%s'", id);
+                q = esql.executeQuery(query);
+                while(q == 0){
+                        System.out.println("Selected storeID does not exists, enter another storeID: ");
+                        id = in.readLine();
+                        q = esql.executeQuery(query);
+                }
+		
+		System.out.println("Select a productName: ");
+                String name = in.readLine();
+
+                query = String.format("SELECT * FROM Product WHERE storeID = '%s' AND productName = '%s'" , id,name);
+                q = esql.executeQuery(query);
+                while(q == 0){
+                        System.out.println("Selected product does not exists in the store, enter another product name: ");
+                        id = in.readLine();
+                        q = esql.executeQuery(query);
+                }
+
+                query = String.format("DELETE  FROM Product WHERE storeID = '%s' AND productName = '%s'", id, name);
+                esql.executeUpdate(query);                                                                                                                                                                    System.out.println("Successful!");
+                return;
+                }else{
+                System.out.println("Unauthorised user, return to main menu!");
+                }
+      }catch(Exception e){
+         System.err.println (e.getMessage ());
+         return;
+      }
+ }; 
+
+//Helper function
+	public static boolean isNumeric(String str){
+        try{
+        Double.parseDouble(str);
+        return true;
+        }catch(NumberFormatException e){
+        return false;
+        }
+}
+	 
+}
