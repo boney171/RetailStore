@@ -286,7 +286,12 @@ public class Retail {
                 System.out.println("7. View 5 Popular Items");
                 System.out.println("8. View 5 Popular Customers");
                 System.out.println("9. Place Product Supply Request to Warehouse");
-
+		System.out.println("10. View Orders (Admin And Manager Only)");
+		System.out.println("11. View Users (Admin only)");
+		System.out.println("12. Add A New User (Admin only)");
+		System.out.println("13. Add A New Product (Admin only)");
+		System.out.println("14. Remove A User (Admin only)");
+		System.out.println("15. Remove A Product (Admin only)");
                 System.out.println(".........................");
                 System.out.println("20. Log out");
                 switch (readChoice()){
@@ -299,6 +304,14 @@ public class Retail {
                    case 7: viewPopularProducts(esql); break;
                    case 8: viewPopularCustomers(esql); break;
                    case 9: placeProductSupplyRequests(esql); break;
+                   case 10: viewOrders(esql); break;
+		   case 11: viewUsers(esql); break;
+		   case 12: addUsers(esql); break;
+		   case 13: addProducts(esql); break;
+		   case 14: removeUsers(esql); break;
+		   case 15: removeProducts(esql); break;
+
+
 
                    case 20: usermenu = false; break;
                    default : System.out.println("Unrecognized choice!"); break;
@@ -500,11 +513,32 @@ String query = String.format("INSERT INTO USERS (name, password, latitude, longi
        int q = esql.executeQuery(query);
        //If user is a customer, show 5 most recent orders
        if( q == 1){
-       System.out.println("View 5 most recent orders: ");
-       query = String.format("SELECT O.storeID as ID, S.name as SName,O.productName, O.unitsOrdered as Number, O.orderTime as Date FROM Orders O,Store S WHERE O.storeID = S.storeID AND customerID = '%s' ORDER BY orderTime DESC LIMIT 5", uId);
-       q = esql.executeQueryAndPrintResult(query);
+       		System.out.println("View 5 most recent orders: ");
+       		query = String.format("SELECT O.storeID as ID, S.name as SName,O.productName, O.unitsOrdered as Number, O.orderTime as Date FROM Orders O,Store S WHERE O.storeID = S.storeID AND customerID = '%s' ORDER BY orderTime DESC LIMIT 5", uId);
+       		q = esql.executeQueryAndPrintResult(query);
+       		return;
        }
-	return;
+	
+	//Check If user is a manager, show most 5 recent orders of his/her stores
+       query = String.format("SELECT * FROM Users WHERE userID = '%s' AND type = 'manager'",uId );
+       q = esql.executeQuery(query);
+       //If user is an admin, show 5 most recent orders from her stores
+       if( q == 1){ // Confirm that user is a manager
+       		System.out.println("Hello manager!");
+		query = String.format("SELECT DISTINCT O.orderNumber as orderID, U.name as customer_name, O.storeID, O.productName, O.orderTime as date FROM Orders O, Users U WHERE O.customerID = U.userID AND O.storeID IN (SELECT S.storeID FROM  Store S, Users U WHERE S.managerID = U.userID AND U.userID = '%s') ORDER by O.orderTime DESC LIMIT 5", uId);
+		q = esql.executeQueryAndPrintResult(query);
+       		return;
+       }
+	//Check if user is an admin, show most 5 recent orders from orders relation
+       query = String.format("SELECT * FROM Users WHERE userID = '%s' AND type = 'admin'",uId );
+       q = esql.executeQuery(query);
+	if( q == 1){ // Confirm that user is an admin
+                System.out.println("Hello admin!");
+                query = "SELECT DISTINCT O.orderNumber as orderID, U.name as customer_name, O.storeID, O.productName, O.orderTime as date FROM Orders O, Users U WHERE O.customerID = U.userID ORDER by O.orderTime DESC LIMIT 5";
+                q = esql.executeQueryAndPrintResult(query);
+                return;
+       }
+
       }catch(Exception e){
          System.err.println (e.getMessage ());
          return;
@@ -627,6 +661,15 @@ String query = String.format("INSERT INTO USERS (name, password, latitude, longi
    public static void viewPopularProducts(Retail esql) {}
    public static void viewPopularCustomers(Retail esql) {}
    public static void placeProductSupplyRequests(Retail esql) {}
+   public static void viewOrders(Retail esql){};
+   public static void viewUsers(Retail esql){};
+   public static void addUsers(Retail esql){};
+   public static void addProducts(Retail esql){};
+   public static void removeUsers(Retail esql){};
+   public static void removeProducts(Retail esql){};
+   	  
+		 
+
 
 }//end Retail
 
