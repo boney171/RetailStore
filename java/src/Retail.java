@@ -624,8 +624,97 @@ String query = String.format("INSERT INTO USERS (name, password, latitude, longi
         }
 }
    public static void viewRecentUpdates(Retail esql) {}
-   public static void viewPopularProducts(Retail esql) {}
-   public static void viewPopularCustomers(Retail esql) {}
+   public static void viewPopularProducts(Retail esql) {
+       try{
+        //Check if a user is a customer or an admin or a manager
+        String query = String.format("SELECT * FROM Users WHERE userID = '%s' AND type = 'customer'",uId );
+        int q = esql.executeQuery(query);
+	if( q == 1){ //User is a customer, return to main menu
+		System.out.println("Unauthorised user, return to main menu!");
+		return;
+	}
+	//User is either an admin or a manager
+	//Check if a user is an admin
+	query = String.format("SELECT * FROM Users WHERE userID = '%s' AND type = 'admin'",uId );
+	q = esql.executeQuery(query);
+	if(q == 1 ){
+	//Functionality of admin
+	 System.out.println("Hello Admin, suck mah D");
+	}
+	else{
+	System.out.println("Hello manager, ligmad");
+	System.out.println("Enter a store ID: ");
+	String storeId = in.readLine();
+	//Check if the this manager manages the store
+	query = String.format("SELECT * FROM STORE WHERE storeID = '%s' AND managerID = '%s'", storeId,uId);
+	q = esql.executeQueryAndPrintResult(query);
+	q = esql.executeQuery(query);
+	//Keep looping until the user enter a valid storeId
+	while( q == 0)
+{
+	System.out.println("Sorry you'are not managing this store, select another store: ");
+	storeId = in.readLine();	
+	query = String.format("SELECT * FROM STORE WHERE storeID = '%s' AND managerID = '%s'", storeId,uId);
+ 
+       //q = esql.executeQueryAndPrintResult(query);
+        q = esql.executeQuery(query);
+
+}
+
+   }
+   System.out.println("You are managing this store!");
+   query = String.format("SELECT O.productName, Count(O.unitsOrdered) from Orders O where O.storeID = '&s' Order By O.productName desc limit 5 ", storeID);
+      q = esql.executeQueryAndPrintResult(query);
+   
+
+   
+   }
+   }
+   
+
+   public static void viewPopularCustomers(Retail esql) {
+      try{
+        //Check if a user is a customer or an admin or a manager
+        String query = String.format("SELECT * FROM Users WHERE userID = '%s' AND type = 'customer'",uId );
+        int q = esql.executeQuery(query);
+	if( q == 1){ //User is a customer, return to main menu
+		System.out.println("Unauthorised user, return to main menu!");
+		return;
+	}
+	//User is either an admin or a manager
+	//Check if a user is an admin
+	query = String.format("SELECT * FROM Users WHERE userID = '%s' AND type = 'admin'",uId );
+	q = esql.executeQuery(query);
+	if(q == 1 ){
+	//Functionality of admin
+	 System.out.println("Hello Admin, suck mah D");
+	}
+	else{
+	System.out.println("Hello manager, ligmad");
+	System.out.println("Enter a store ID: ");
+	String storeId = in.readLine();
+	//Check if the this manager manages the store
+	query = String.format("SELECT * FROM STORE WHERE storeID = '%s' AND managerID = '%s'", storeId,uId);
+	q = esql.executeQueryAndPrintResult(query);
+	q = esql.executeQuery(query);
+	//Keep looping until the user enter a valid storeId
+	while( q == 0)
+{
+	System.out.println("Sorry you'are not managing this store, select another store: ");
+	storeId = in.readLine();	
+	query = String.format("SELECT * FROM STORE WHERE storeID = '%s' AND managerID = '%s'", storeId,uId);
+ 
+       //q = esql.executeQueryAndPrintResult(query);
+        q = esql.executeQuery(query);
+
+}
+
+   }
+   System.out.println("You are managing this store!");
+   }
+   query = String.format("Select customerID, Count(orderDate) as NumberofOrders from Order O where O.storeID = '&s' desc LIMIT 5", storeId);
+   q = esql.executeQueryAndPrintResult(query);
+   }
    public static void placeProductSupplyRequests(Retail esql) {}
 
 }//end Retail
