@@ -669,10 +669,15 @@ String query = String.format("INSERT INTO USERS (name, password, latitude, longi
 		System.out.println("Unauthorised user, return to main menu!");
 		return;
 	}
-	//User is either an admin or a manager
-	//Check if a user is an admin
 	query = String.format("SELECT * FROM Users WHERE userID = '%s' AND type = 'manager'",uId );
 	q = esql.executeQuery(query);
+   while (q==0)
+   {
+      System.out.println("You are not the manager please re-enter your userID: ");
+      uId = in.readLine();
+      q = esql.executeQuery(query);
+
+   }
 	System.out.println("Hello manager");
 	System.out.println("Enter a store ID: ");
 	String storeId = in.readLine();
@@ -694,8 +699,9 @@ String query = String.format("INSERT INTO USERS (name, password, latitude, longi
    System.out.println("You are managing this store!");
       query = String.format("SELECT * from ProductUpdates P, where P.storeID in (select S.storeID from Stores S, Users U where S.managerID = U.userID and U.userID = '&s' DESCS LIMIT 5", uId);
       q = esql.executeQueryAndPrintResult(query);
-      }
-      }
+      
+      
+}
        catch(Exception e) {
          System.err.println (e.getMessage ());
       }
@@ -710,16 +716,16 @@ String query = String.format("INSERT INTO USERS (name, password, latitude, longi
 		System.out.println("Unauthorised user, return to main menu!");
 		return;
 	}
-	//User is either an admin or a manager
-	//Check if a user is an admin
-	query = String.format("SELECT O.productName, count(unitsOrdered) from Orders O where O.storeID in (select S.storeID from Stores S, Users S where S.managerID = U.userID and U.userID = '&s') order by O.orderTime descs limit 5",uId);
+	query = String.format("SELECT * FROM Users WHERE userID = '%s' AND type = 'manager'",uId );
 	q = esql.executeQuery(query);
-	if(q == 1 ){
-	//Functionality of admin
-	 System.out.println("Hello Admin");
-	}
-	else{
-	System.out.println("Hello manager, ligmad");
+   while (q==0)
+   {
+      System.out.println("You are not the manager please re-enter your userID: ");
+      uId = in.readLine();
+      q = esql.executeQuery(query);
+
+   }
+	System.out.println("Hello manager");
 	System.out.println("Enter a store ID: ");
 	String storeId = in.readLine();
 	//Check if the this manager manages the store
