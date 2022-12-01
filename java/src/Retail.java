@@ -236,6 +236,7 @@ public class Retail {
         public static int i = 505;//Order number, will be incremented everytime a new order comes in
 	public static int j = 55;//Update number, will be incremented everytime a new update comes in
 	public static int u = 106;//User ID number, will be incremented everytime a new user is inserted
+   public static int psr = 11;
 	public static String uId;
    public static void main (String[] args) {
       if (args.length != 3) {
@@ -670,13 +671,8 @@ String query = String.format("INSERT INTO USERS (name, password, latitude, longi
 	}
 	//User is either an admin or a manager
 	//Check if a user is an admin
-	query = String.format("SELECT * FROM Users WHERE userID = '%s' AND type = 'admin'",uId );
+	query = String.format("SELECT * FROM Users WHERE userID = '%s' AND type = 'manager'",uId );
 	q = esql.executeQuery(query);
-	if(q == 1 ){
-	//Functionality of admin
-	 System.out.println("Hello Admin");
-	}
-	else{
 	System.out.println("Hello manager");
 	System.out.println("Enter a store ID: ");
 	String storeId = in.readLine();
@@ -695,10 +691,8 @@ String query = String.format("INSERT INTO USERS (name, password, latitude, longi
         q = esql.executeQuery(query);
 
 }
-
-   
    System.out.println("You are managing this store!");
-      query = String.format("SELECT * from ProductUpdates P, Stores S where P.storeID = '&s' order P.updateNumber DESC LIMIT 5", storeId);
+      query = String.format("SELECT * from ProductUpdates P, where P.storeID in (select S.storeID from Stores S, Users U where S.managerID = U.userID and U.userID = '&s' DESCS LIMIT 5", uId);
       q = esql.executeQueryAndPrintResult(query);
       }
       }
@@ -753,7 +747,6 @@ String query = String.format("INSERT INTO USERS (name, password, latitude, longi
       }
 
    }
-   
 
    public static void viewPopularCustomers(Retail esql) {
       try{
@@ -795,7 +788,7 @@ String query = String.format("INSERT INTO USERS (name, password, latitude, longi
    
    System.out.println("You are managing this store!");
    
-	query = String.format("SELECT O.productName, count(unitsOrdered) from Orders O where O.storeID in (select S.storeID from Stores S, Users S where S.managerID = U.userID and U.userID = '&s') order by O.orderTime descs limit 5",uId);
+	query = String.format("SELECT customerID, count(*) from Orders O where O.storeID in (select S.storeID from Stores S, Users S where S.managerID = U.userID and U.userID = '&s') order by O.orderTime descs limit 5",uId);
    q = esql.executeQueryAndPrintResult(query);
    }
    }
@@ -805,42 +798,75 @@ String query = String.format("INSERT INTO USERS (name, password, latitude, longi
    }
 
    public static void placeProductSupplyRequests(Retail esql) {
-      try{
-      //Check if user is a customer
-       String query = String.format("SELECT * FROM Users WHERE userID = '%s' AND type = 'customer'",uId );
-       int q = esql.executeQuery(query);
-       //If user is a customer, show 5 most recent orders
-       if( q == 1){
-       		System.out.println("View 5 most recent orders: ");
-       		query = String.format("SELECT O.storeID as ID, S.name as SName,O.productName, O.unitsOrdered as Number, O.orderTime as Date FROM Orders O,Store S WHERE O.storeID = S.storeID AND customerID = '%s' ORDER BY orderTime DESC LIMIT 5", uId);
-       		q = esql.executeQueryAndPrintResult(query);
-       		return;
-       }
+      
+try{
+        //Check if a user is a customer or an admin or a manager
+        String query = String.format("SELECT * FROM Users WHERE userID = '%s' AND type = 'customer'",uId );
+        int q = esql.executeQuery(query);
+	if( q == 1){ //User is a customer, return to main menu
+		System.out.println("Unauthorised user, return to main menu!");
+		return;
+	}
+	//User is either an admin or a manager
+	//Check if a user is an admin
+	query = String.format("SELECT * FROM Users WHERE userID = '%s' AND type = 'manager'",uId );
+	q = esql.executeQuery(query);
 	
-	//Check If user is a manager, show most 5 recent orders of his/her stores
-       query = String.format("SELECT * FROM Users WHERE userID = '%s' AND type = 'manager'",uId );
-       q = esql.executeQuery(query);
-       //If user is an admin, show 5 most recent orders from her stores
-       if( q == 1){ // Confirm that user is a manager
-       		System.out.println("Hello manager!");
-		query = String.format("SELECT DISTINCT O.orderNumber as orderID, U.name as customer_name, O.storeID, O.productName, O.orderTime as date FROM Orders O, Users U WHERE O.customerID = U.userID AND O.storeID IN (SELECT S.storeID FROM  Store S, Users U WHERE S.managerID = U.userID AND U.userID = '%s') ORDER by O.orderTime DESC LIMIT 5", uId);
-		q = esql.executeQueryAndPrintResult(query);
-       		return;
-       }
-	//Check if user is an admin, show most 5 recent orders from orders relation
-       query = String.format("SELECT * FROM Users WHERE userID = '%s' AND type = 'admin'",uId );
-       q = esql.executeQuery(query);
-	if( q == 1){ // Confirm that user is an admin
-                System.out.println("Hello admin!");
-                query = "SELECT DISTINCT O.orderNumber as orderID, U.name as customer_name, O.storeID, O.productName, O.orderTime as date FROM Orders O, Users U WHERE O.customerID = U.userID ORDER by O.orderTime DESC LIMIT 5";
-                q = esql.executeQueryAndPrintResult(query);
-                return;
-       }
+   while(q == 0){
+   System.out.println("You are not Manager, please enter your UserID again Manager: ");
+   uId = in.readLine();
+   q = esql.executeQuery(query);
+ }
 
-      }catch(Exception e){
-         System.err.println (e.getMessage ());
-         return;
-      }
+	//Functionality of admin
+	//Admin should be able to update any product
+	System.out.println("Welcome admin, select a storeID: ");
+	String storeId = in.readLine();
+	query = String.format("SELECT * from Store S WHERE S.storeID = '%s'", storeId);
+        q = esql.executeQuery(query);
+	//Check if a selected store exists, if not, keep looping until store
+	while( q == 0)
+{
+	System.out.println("Selected Store does not exists, select a valid storeID: ");
+	storeId = in.readLine();
+
+	query = String.format("SELECT * from Store S WHERE S.storeID = '%s'", storeId);
+        q = esql.executeQuery(query);	
+}	
+//Get product information
+	System.out.println("Please Enter the product you want to order: ");
+        String productName = in.readLine();
+	query = String.format("SELECT * FROM Product WHERE storeID = '%s' AND productName = '%s'", storeId, productName);
+       //Check if the selected product exist
+        q = esql.executeQuery(query);
+       //If not exists, keep looping until get a valid product name
+	 while(q == 0)
+ {
+        System.out.println("Your selected product does not exists, select another product: ");
+        productName = in.readLine();
+        query = String.format("SELECT * FROM Product WHERE storeID = '%s' AND productName = '%s'", storeId, productName);
+        q = esql.executeQuery(query);
+}
+
+	System.out.println("\tPlease Enter how many units you want ordered:  ");
+        String numberOfUnits = in.readLine();
+
+        System.out.println("\tPlease Enter from which warehouse you want to order from: ");
+        String pricePerUnit = in.readLine();
+
+        System.out.println(" Successful!");
+	//Update the new information into the product relation
+	query = String.format("UPDATE Product SET numberOfUnits = '%s' WHERE storeID = '%s' AND productName = '%s'", numberOfUnits, storeId, productName);
+        esql.executeUpdate(query);
+	//Update the new update information into the ProductUpdates relation
+	query = String.format("INSERT INTO productSupplyRequests(requestNumber, managerID,warehouseID, storeID,productName,unitsRequested) VALUES('%s','%s','%s','%s','&s',NOW())",psr, uId, warehouseID, storeId, productName, unitsRequested );
+        esql.executeUpdate(query);
+	psr++;
+	}//End functionality of manager
+      catch(Exception e){
+                System.err.println (e.getMessage ());
+        return;
+        }
    }
    public static void viewOrders(Retail esql){
 	 try{
@@ -1057,7 +1083,3 @@ String query = String.format("INSERT INTO USERS (name, password, latitude, longi
         }
 }
 	 
-}
-
-
-
