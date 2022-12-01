@@ -722,7 +722,7 @@ String query = String.format("INSERT INTO USERS (name, password, latitude, longi
 	q = esql.executeQuery(query);
 	if(q == 1 ){
 	//Functionality of admin
-	 System.out.println("Hello Admin, suck mah D");
+	 System.out.println("Hello Admin");
 	}
 	else{
 	System.out.println("Hello manager, ligmad");
