@@ -718,7 +718,7 @@ String query = String.format("INSERT INTO USERS (name, password, latitude, longi
 	}
 	//User is either an admin or a manager
 	//Check if a user is an admin
-	query = String.format("SELECT * FROM Users WHERE userID = '%s' AND type = 'admin'",uId );
+	query = String.format("SELECT O.productName, count(unitsOrdered) from Orders O where O.storeID in (select S.storeID from Stores S, Users S where S.managerID = U.userID and U.userID = '&s') order by O.orderTime descs limit 5",uId);
 	q = esql.executeQuery(query);
 	if(q == 1 ){
 	//Functionality of admin
@@ -743,10 +743,8 @@ String query = String.format("INSERT INTO USERS (name, password, latitude, longi
         q = esql.executeQuery(query);
 
 }
-
-   
    System.out.println("You are managing this store!");
-   query = String.format("SELECT O.productName, Count(O.unitsOrdered) from Orders O where O.storeID = '&s' Order By O.productName desc limit 5 ", storeID);
+   query = String.format("SELECT O.productName, COUNT(O.unitsOrdered) AS TOTAL_TIMES_ORDERED FROM Orders O WHERE O.storeID IN (SELECT S.storeID FROM Store S, Users U where S.managerID = U.userID and U.userID ='&s' GROUP BY O.productName ORDER BY TOTAL_TIMES_ORDERED DESC LIMIT 5",uId);
       q = esql.executeQueryAndPrintResult(query);
    }
    }
@@ -797,7 +795,7 @@ String query = String.format("INSERT INTO USERS (name, password, latitude, longi
    
    System.out.println("You are managing this store!");
    
-   query = String.format("Select customerID, Count(orderDate) as NumberofOrders from Order O where O.storeID = '&s' desc LIMIT 5", storeId);
+	query = String.format("SELECT O.productName, count(unitsOrdered) from Orders O where O.storeID in (select S.storeID from Stores S, Users S where S.managerID = U.userID and U.userID = '&s') order by O.orderTime descs limit 5",uId);
    q = esql.executeQueryAndPrintResult(query);
    }
    }
@@ -806,7 +804,44 @@ String query = String.format("INSERT INTO USERS (name, password, latitude, longi
       }
    }
 
-   public static void placeProductSupplyRequests(Retail esql) {}
+   public static void placeProductSupplyRequests(Retail esql) {
+      try{
+      //Check if user is a customer
+       String query = String.format("SELECT * FROM Users WHERE userID = '%s' AND type = 'customer'",uId );
+       int q = esql.executeQuery(query);
+       //If user is a customer, show 5 most recent orders
+       if( q == 1){
+       		System.out.println("View 5 most recent orders: ");
+       		query = String.format("SELECT O.storeID as ID, S.name as SName,O.productName, O.unitsOrdered as Number, O.orderTime as Date FROM Orders O,Store S WHERE O.storeID = S.storeID AND customerID = '%s' ORDER BY orderTime DESC LIMIT 5", uId);
+       		q = esql.executeQueryAndPrintResult(query);
+       		return;
+       }
+	
+	//Check If user is a manager, show most 5 recent orders of his/her stores
+       query = String.format("SELECT * FROM Users WHERE userID = '%s' AND type = 'manager'",uId );
+       q = esql.executeQuery(query);
+       //If user is an admin, show 5 most recent orders from her stores
+       if( q == 1){ // Confirm that user is a manager
+       		System.out.println("Hello manager!");
+		query = String.format("SELECT DISTINCT O.orderNumber as orderID, U.name as customer_name, O.storeID, O.productName, O.orderTime as date FROM Orders O, Users U WHERE O.customerID = U.userID AND O.storeID IN (SELECT S.storeID FROM  Store S, Users U WHERE S.managerID = U.userID AND U.userID = '%s') ORDER by O.orderTime DESC LIMIT 5", uId);
+		q = esql.executeQueryAndPrintResult(query);
+       		return;
+       }
+	//Check if user is an admin, show most 5 recent orders from orders relation
+       query = String.format("SELECT * FROM Users WHERE userID = '%s' AND type = 'admin'",uId );
+       q = esql.executeQuery(query);
+	if( q == 1){ // Confirm that user is an admin
+                System.out.println("Hello admin!");
+                query = "SELECT DISTINCT O.orderNumber as orderID, U.name as customer_name, O.storeID, O.productName, O.orderTime as date FROM Orders O, Users U WHERE O.customerID = U.userID ORDER by O.orderTime DESC LIMIT 5";
+                q = esql.executeQueryAndPrintResult(query);
+                return;
+       }
+
+      }catch(Exception e){
+         System.err.println (e.getMessage ());
+         return;
+      }
+   }
    public static void viewOrders(Retail esql){
 	 try{
         //Check if user is an admin or not
@@ -1023,3 +1058,6 @@ String query = String.format("INSERT INTO USERS (name, password, latitude, longi
 }
 	 
 }
+
+
+
