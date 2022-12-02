@@ -821,6 +821,8 @@ try{
    while(q == 0){
    System.out.println("You are not Manager, please enter your UserID again Manager: ");
    uId = in.readLine();
+   query = String.format("SELECT * FROM STORE WHERE storeID = '%s' AND managerID = '%s'", storeId,uId);
+
    q = esql.executeQuery(query);
  }
 
