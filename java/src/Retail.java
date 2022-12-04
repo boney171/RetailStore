@@ -233,9 +233,7 @@ public class Retail {
     *
     * @param args the command line arguments this inclues the <mysql|pgsql> <login file>
     */
-        public static int i = 505;//Order number, will be incremented everytime a new order comes in
-	public static int j = 55;//Update number, will be incremented everytime a new update comes in
-	public static int u = 106;//User ID number, will be incremented everytime a new user is inserted
+  
 	public static String uId;
    public static void main (String[] args) {
       if (args.length != 3) {
@@ -495,9 +493,7 @@ String query = String.format("INSERT INTO USERS (name, password, latitude, longi
 	}
 	System.out.println("\tCompleting your orders... Succeed!");
 	//Input order into order relation
-	String orderNumber = String.valueOf(i);
-	i++;
-	query2 = String.format("INSERT INTO Orders(orderNumber,customerID,storeID,productName,unitsOrdered,orderTime) VALUES('%s','%s','%s','%s','%s',NOW())",orderNumber,uId,storeId,productName,amount);
+	query2 = String.format("INSERT INTO Orders(customerID,storeID,productName,unitsOrdered,orderTime) VALUES('%s','%s','%s','%s',NOW())",uId,storeId,productName,amount);
 	esql.executeUpdate(query2);
 	//Update products relationn
 	 query2 = String.format("UPDATE Product SET numberOfUnits = numberOfUnits - '%s' WHERE storeID = '%s' AND productName = '%s'", amount, storeId, productName);
@@ -601,12 +597,10 @@ String query = String.format("INSERT INTO USERS (name, password, latitude, longi
 	query = String.format("UPDATE Product SET numberOfUnits = '%s', pricePerUnit = '%s' WHERE storeID = '%s' AND productName = '%s'", numberOfUnits, pricePerUnit, storeId, productName);
         esql.executeUpdate(query);
 	//Update the new update information into the ProductUpdates relation
-	query = String.format("INSERT INTO ProductUpdates(updateNumber, managerID,storeID,productName,updatedOn) VALUES('%s','%s','%s','%s',NOW())",j, uId, storeId, productName );
+	query = String.format("INSERT INTO ProductUpdates( managerID,storeID,productName,updatedOn) VALUES('%s','%s','%s',NOW())", uId, storeId, productName );
         esql.executeUpdate(query);
-	j++;
 	}//End functionality of admin
 	else{ //Start functionality of the manager
-	System.out.println("Hello manager, ligmad");
 	System.out.println("Enter a store ID: ");
 	String storeId = in.readLine();
 	//Check if the this manager manages the store
@@ -650,9 +644,8 @@ String query = String.format("INSERT INTO USERS (name, password, latitude, longi
 	query = String.format("UPDATE Product SET numberOfUnits = '%s', pricePerUnit = '%s' WHERE storeID = '%s' AND productName = '%s'", numberOfUnits, pricePerUnit, storeId, productName);
 	esql.executeUpdate(query);
 	//Update the new update information into the ProductUpdates relation
-	query = String.format("INSERT INTO ProductUpdates(updateNumber, managerID,storeID,productName,updatedOn) VALUES('%s','%s','%s','%s',NOW())",j, uId, storeId, productName );
+	query = String.format("INSERT INTO ProductUpdates( managerID,storeID,productName,updatedOn) VALUES('%s','%s','%s','%s',NOW())", uId, storeId, productName );
 	esql.executeUpdate(query);
-	j++;
 	}//End functionality of manager
       }catch(Exception e){
                 System.err.println (e.getMessage ());
@@ -725,7 +718,6 @@ String query = String.format("INSERT INTO USERS (name, password, latitude, longi
 	 System.out.println("Hello Admin, suck mah D");
 	}
 	else{
-	System.out.println("Hello manager, ligmad");
 	System.out.println("Enter a store ID: ");
 	String storeId = in.readLine();
 	//Check if the this manager manages the store
@@ -746,7 +738,7 @@ String query = String.format("INSERT INTO USERS (name, password, latitude, longi
 
    
    System.out.println("You are managing this store!");
-   query = String.format("SELECT O.productName, Count(O.unitsOrdered) from Orders O where O.storeID = '&s' Order By O.productName desc limit 5 ", storeID);
+   query = String.format("SELECT O.productName, Count(O.unitsOrdered) from Orders O where O.storeID = '&s' Order By O.productName desc limit 5 ", storeId);
       q = esql.executeQueryAndPrintResult(query);
    }
    }
@@ -772,32 +764,12 @@ String query = String.format("INSERT INTO USERS (name, password, latitude, longi
 	q = esql.executeQuery(query);
 	if(q == 1 ){
 	//Functionality of admin
-	 System.out.println("Hello Admin, suck mah D");
+	 query = String.format("Select O.storeID , O.customerID, U.name , Count(*) as NumberofOrders From Orders O, Users U where U.userID = O.customerID GROUP BY O.storeID, O.customerID, U.name ORDER BY COUNT(*) desc LIMIT 5");
+ 	q = esql.executeQueryAndPrintResult(query);
 	}
-	else{
-	System.out.println("Hello manager, ligmad");
-	System.out.println("Enter a store ID: ");
-	String storeId = in.readLine();
-	//Check if the this manager manages the store
-	query = String.format("SELECT * FROM STORE WHERE storeID = '%s' AND managerID = '%s'", storeId,uId);
-	q = esql.executeQueryAndPrintResult(query);
-	q = esql.executeQuery(query);
-	//Keep looping until the user enter a valid storeId
-	while( q == 0)
-{
-	System.out.println("Sorry you'are not managing this store, select another store: ");
-	storeId = in.readLine();	
-	query = String.format("SELECT * FROM STORE WHERE storeID = '%s' AND managerID = '%s'", storeId,uId);
- 
-       //q = esql.executeQueryAndPrintResult(query);
-        q = esql.executeQuery(query);
-
-}
-
+	else{ //Functionality of manager
    
-   System.out.println("You are managing this store!");
-   
-   query = String.format("Select customerID, Count(orderDate) as NumberofOrders from Order O where O.storeID = '&s' desc LIMIT 5", storeId);
+   	query = String.format("Select O.storeID , O.customerID, U.name , Count(*) as NumberofOrders From Orders O, Users U where U.userID = O.customerID AND O.storeID IN (SELECT S.storeID FROM  Store S, Users U WHERE S.managerID = U.userID AND U.userID = '%s') GROUP BY O.storeID, O.customerID, U.name ORDER BY COUNT(*) desc LIMIT 5", uId);
    q = esql.executeQueryAndPrintResult(query);
    }
    }
@@ -883,8 +855,7 @@ String query = String.format("INSERT INTO USERS (name, password, latitude, longi
                 }
 		System.out.println("Select the user's type (admin,customer,manager): ");
 		String type = in.readLine();
-		query = String.format("INSERT INTO Users(userID,name,password,latitude,longitude,type) VALUES('%s','%s','%s','%s','%s','%s')", u,name,password,latitude,longitude,type);
-		u++;
+		query = String.format("INSERT INTO Users(name,password,latitude,longitude,type) VALUES('%s','%s','%s','%s','%s')",name,password,latitude,longitude,type);
 		System.out.println("Successful!!");
 		esql.executeUpdate(query);		
                 return;
@@ -959,9 +930,12 @@ String query = String.format("INSERT INTO USERS (name, password, latitude, longi
                 while(q == 0){
                         System.out.println("Selected user does not exists, enter another userID: ");
                         id = in.readLine();
+			query = String.format("SELECT * FROM USERS WHERE userID = '%s'", id);
                         q = esql.executeQuery(query);
                 }
-                query = String.format("DELETE  FROM Users WHERE userID = '%s'", id);
+                query = String.format("DELETE FROM ORDERS WHERE customerID = '%s'", id);
+		esql.executeUpdate(query);
+		query = String.format("DELETE  FROM Users WHERE userID = '%s'", id);
                 esql.executeUpdate(query);                                                                                                                                                                    System.out.println("Successful!");
                 return;
                 }else{
@@ -986,6 +960,7 @@ String query = String.format("INSERT INTO USERS (name, password, latitude, longi
                 while(q == 0){
                         System.out.println("Selected storeID does not exists, enter another storeID: ");
                         id = in.readLine();
+			query = String.format("SELECT * FROM Users WHERE userID = '%s' AND type = 'admin'",uId );
                         q = esql.executeQuery(query);
                 }
 		
@@ -997,9 +972,11 @@ String query = String.format("INSERT INTO USERS (name, password, latitude, longi
                 while(q == 0){
                         System.out.println("Selected product does not exists in the store, enter another product name: ");
                         id = in.readLine();
+			query = String.format("SELECT * FROM Product WHERE storeID = '%s' AND productName = '%s'" , id,name);
                         q = esql.executeQuery(query);
                 }
-
+		query = String.format("DELETE FROM Orders WHERE storeID = '%s' AND productName = '%s'", id, name);
+		esql.executeUpdate(query);
                 query = String.format("DELETE  FROM Product WHERE storeID = '%s' AND productName = '%s'", id, name);
                 esql.executeUpdate(query);                                                                                                                                                                    System.out.println("Successful!");
                 return;
