@@ -667,31 +667,11 @@ String query = String.format("INSERT INTO USERS (name, password, latitude, longi
 	q = esql.executeQuery(query);
 	if(q == 1 ){
 	//Functionality of admin
-	 System.out.println("Hello Admin, suck mah D");
+	 query = String.format("SELECT * FROM ProductUpdates ORDER BY updatedOn desc LIMIT 5");
+	 q = esql.executeQueryAndPrintResult(query);
 	}
 	else{
-	System.out.println("Hello manager, ligmad");
-	System.out.println("Enter a store ID: ");
-	String storeId = in.readLine();
-	//Check if the this manager manages the store
-	query = String.format("SELECT * FROM STORE WHERE storeID = '%s' AND managerID = '%s'", storeId,uId);
-	q = esql.executeQueryAndPrintResult(query);
-	q = esql.executeQuery(query);
-	//Keep looping until the user enter a valid storeId
-	while( q == 0)
-{
-	System.out.println("Sorry you'are not managing this store, select another store: ");
-	storeId = in.readLine();	
-	query = String.format("SELECT * FROM STORE WHERE storeID = '%s' AND managerID = '%s'", storeId,uId);
- 
-       //q = esql.executeQueryAndPrintResult(query);
-        q = esql.executeQuery(query);
-
-}
-
-   
-   System.out.println("You are managing this store!");
-      query = String.format("SELECT * from ProductUpdates P, Stores S where P.storeID = '&s' order P.updateNumber DESC LIMIT 5", storeId);
+      query = String.format("SELECT updateNumber, storeID, productName from ProductUpdates where storeID IN (SELECT S.storeID FROM  Store S, Users U WHERE S.managerID = U.userID AND U.userID = '%s') order by updatedOn DESC LIMIT 5", uId);
       q = esql.executeQueryAndPrintResult(query);
       }
       }
@@ -715,30 +695,11 @@ String query = String.format("INSERT INTO USERS (name, password, latitude, longi
 	q = esql.executeQuery(query);
 	if(q == 1 ){
 	//Functionality of admin
-	 System.out.println("Hello Admin, suck mah D");
+	  query = String.format("SELECT O.productName, Count(*) as countOfOrders from Orders O  GROUP BY O.productName Order By countOfOrders desc limit 5 ");
+      q = esql.executeQueryAndPrintResult(query);
 	}
-	else{
-	System.out.println("Enter a store ID: ");
-	String storeId = in.readLine();
-	//Check if the this manager manages the store
-	query = String.format("SELECT * FROM STORE WHERE storeID = '%s' AND managerID = '%s'", storeId,uId);
-	q = esql.executeQueryAndPrintResult(query);
-	q = esql.executeQuery(query);
-	//Keep looping until the user enter a valid storeId
-	while( q == 0)
-{
-	System.out.println("Sorry you'are not managing this store, select another store: ");
-	storeId = in.readLine();	
-	query = String.format("SELECT * FROM STORE WHERE storeID = '%s' AND managerID = '%s'", storeId,uId);
- 
-       //q = esql.executeQueryAndPrintResult(query);
-        q = esql.executeQuery(query);
-
-}
-
-   
-   System.out.println("You are managing this store!");
-   query = String.format("SELECT O.productName, Count(O.unitsOrdered) from Orders O where O.storeID = '&s' Order By O.productName desc limit 5 ", storeId);
+	else{ //Functionality of manager
+   query = String.format("SELECT O.productName, Count(*) as countOfOrders from Orders O WHERE O.storeID IN(SELECT S.storeID FROM  Store S, Users U WHERE S.managerID = U.userID AND U.userID = '%s') GROUP BY O.productName Order By countOfOrders desc limit 5 ", uId);
       q = esql.executeQueryAndPrintResult(query);
    }
    }
@@ -975,10 +936,15 @@ String query = String.format("INSERT INTO USERS (name, password, latitude, longi
 			query = String.format("SELECT * FROM Product WHERE storeID = '%s' AND productName = '%s'" , id,name);
                         q = esql.executeQuery(query);
                 }
+		query = String.format("DELETE FROM ProductSupplyRequests WHERE storeID = '%s' AND productName = '%s'", id, name);
+                esql.executeUpdate(query);
 		query = String.format("DELETE FROM Orders WHERE storeID = '%s' AND productName = '%s'", id, name);
 		esql.executeUpdate(query);
+		query = String.format("DELETE FROM ProductUpdates WHERE storeID = '%s' AND productName = '%s'", id, name);
+		esql.executeUpdate(query);
                 query = String.format("DELETE  FROM Product WHERE storeID = '%s' AND productName = '%s'", id, name);
-                esql.executeUpdate(query);                                                                                                                                                                    System.out.println("Successful!");
+                esql.executeUpdate(query);
+		 System.out.println("Successful!");
                 return;
                 }else{
                 System.out.println("Unauthorised user, return to main menu!");
