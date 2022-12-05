@@ -739,7 +739,79 @@ String query = String.format("INSERT INTO USERS (name, password, latitude, longi
       }
    }
 
-   public static void placeProductSupplyRequests(Retail esql) {}
+    public static void placeProductSupplyRequests(Retail esql) {
+      
+try{
+        //Check if a user is a customer or an admin or a manager
+        String query = String.format("SELECT * FROM Users WHERE userID = '%s' AND type = 'customer'",uId );
+        int q = esql.executeQuery(query);
+	if( q == 1){ //User is a customer, return to main menu
+		System.out.println("Unauthorised user, return to main menu!");
+		return;
+	}
+	//User is either an admin or a manager
+	//Check if a user is an admin
+	query = String.format("SELECT * FROM Users WHERE userID = '%s' AND type = 'manager'",uId );
+	q = esql.executeQuery(query);
+	
+   while(q == 0){
+   System.out.println("You are not Manager, please enter your UserID again Manager: ");
+   uId = in.readLine();
+   query = String.format("SELECT * FROM STORE WHERE storeID = '%s' AND managerID = '%s'", storeId,uId);
+
+   q = esql.executeQuery(query);
+ }
+
+	//Functionality of admin
+	//Admin should be able to update any product
+	System.out.println("Welcome admin, select a storeID: ");
+	String storeId = in.readLine();
+	query = String.format("SELECT * from Store S WHERE S.storeID = '%s'", storeId);
+        q = esql.executeQuery(query);
+	//Check if a selected store exists, if not, keep looping until store
+	while( q == 0)
+{
+	System.out.println("Selected Store does not exists, select a valid storeID: ");
+	storeId = in.readLine();
+
+	query = String.format("SELECT * from Store S WHERE S.storeID = '%s'", storeId);
+        q = esql.executeQuery(query);	
+}	
+//Get product information
+	System.out.println("Please Enter the product you want to order: ");
+        String productName = in.readLine();
+	query = String.format("SELECT * FROM Product WHERE storeID = '%s' AND productName = '%s'", storeId, productName);
+       //Check if the selected product exist
+        q = esql.executeQuery(query);
+       //If not exists, keep looping until get a valid product name
+	 while(q == 0)
+ {
+        System.out.println("Your selected product does not exists, select another product: ");
+        productName = in.readLine();
+        query = String.format("SELECT * FROM Product WHERE storeID = '%s' AND productName = '%s'", storeId, productName);
+        q = esql.executeQuery(query);
+}
+
+	System.out.println("\tPlease Enter how many units you want ordered:  ");
+        String numberOfUnits = in.readLine();
+
+        System.out.println("\tPlease Enter from which warehouse you want to order from: ");
+        String pricePerUnit = in.readLine();
+
+        System.out.println(" Successful!");
+	//Update the new information into the product relation
+	query = String.format("UPDATE Product SET numberOfUnits = '%s' WHERE storeID = '%s' AND productName = '%s'", numberOfUnits, storeId, productName);
+        esql.executeUpdate(query);
+	//Update the new update information into the ProductUpdates relation
+	query = String.format("INSERT INTO productSupplyRequests(requestNumber, managerID,warehouseID, storeID,productName,unitsRequested) VALUES('%s','%s','%s','%s','&s',NOW())",psr, uId, warehouseID, storeId, productName, unitsRequested );
+        esql.executeUpdate(query);
+	psr++;
+	}//End functionality of manager
+      catch(Exception e){
+                System.err.println (e.getMessage ());
+        return;
+        }
+   }
    public static void viewOrders(Retail esql){
 	 try{
         //Check if user is an admin or not
