@@ -761,10 +761,7 @@ try{
 
    q = esql.executeQuery(query);
  }
-
-	//Functionality of admin
-	//Admin should be able to update any product
-	System.out.println("Welcome admin, select a storeID: ");
+	System.out.println("Welcome Manager, select a storeID: ");
 	String storeId = in.readLine();
 	query = String.format("SELECT * from Store S WHERE S.storeID = '%s'", storeId);
         q = esql.executeQuery(query);
@@ -803,9 +800,9 @@ try{
 	query = String.format("UPDATE Product SET numberOfUnits = '%s' WHERE storeID = '%s' AND productName = '%s'", numberOfUnits, storeId, productName);
         esql.executeUpdate(query);
 	//Update the new update information into the ProductUpdates relation
-	query = String.format("INSERT INTO productSupplyRequests(requestNumber, managerID,warehouseID, storeID,productName,unitsRequested) VALUES('%s','%s','%s','%s','&s',NOW())",psr, uId, warehouseID, storeId, productName, unitsRequested );
+	query = String.format("INSERT INTO productSupplyRequests(managerID, warehouseID, storeID, productName, unitsRequested) VALUES('%s','%s','%s','&s',NOW())",uId, warehouseID, storeId, productName, unitsRequested );
         esql.executeUpdate(query);
-	psr++;
+	
 	}//End functionality of manager
       catch(Exception e){
                 System.err.println (e.getMessage ());
