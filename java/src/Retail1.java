@@ -644,7 +644,7 @@ String query = String.format("INSERT INTO USERS (name, password, latitude, longi
 	query = String.format("UPDATE Product SET numberOfUnits = '%s', pricePerUnit = '%s' WHERE storeID = '%s' AND productName = '%s'", numberOfUnits, pricePerUnit, storeId, productName);
 	esql.executeUpdate(query);
 	//Update the new update information into the ProductUpdates relation
-	query = String.format("INSERT INTO ProductUpdates( managerID,storeID,productName,updatedOn) VALUES('%s','%s','%s',NOW())", uId, storeId, productName );
+	query = String.format("INSERT INTO ProductUpdates( managerID,storeID,productName,updatedOn) VALUES('%s','%s','%s','%s',NOW())", uId, storeId, productName );
 	esql.executeUpdate(query);
 	}//End functionality of manager
       }catch(Exception e){
@@ -671,7 +671,7 @@ String query = String.format("INSERT INTO USERS (name, password, latitude, longi
 	 q = esql.executeQueryAndPrintResult(query);
 	}
 	else{
-      query = String.format("SELECT updateNumber, storeID, productName, updatedOn from ProductUpdates where storeID IN (SELECT S.storeID FROM  Store S, Users U WHERE S.managerID = U.userID AND U.userID = '%s') order by updatedOn DESC LIMIT 5", uId);
+      query = String.format("SELECT updateNumber, storeID, productName from ProductUpdates where storeID IN (SELECT S.storeID FROM  Store S, Users U WHERE S.managerID = U.userID AND U.userID = '%s') order by updatedOn DESC LIMIT 5", uId);
       q = esql.executeQueryAndPrintResult(query);
       }
       }
@@ -737,158 +737,34 @@ String query = String.format("INSERT INTO USERS (name, password, latitude, longi
     catch(Exception e) {
          System.err.println (e.getMessage ());
       }
-   };
+   }
 
-//public static void placeProductSupplyRequests(Retail esql) {};
-
-
-    public static void placeProductSupplyRequests(Retail esql) {
-      
-try{
-	String query = String.format("SELECT * FROM Users WHERE userID = '%s' AND type = 'customer'",uId );
-	int q = esql.executeQuery(query);
-        if(q == 1 ){
-		System.out.println("Unauthorised user, return to main menu!");
-		return;
-	}
-       //User is either an admin or a manager
-	//Check if a user is an admin
-	 query = String.format("SELECT * FROM Users WHERE userID = '%s' AND type = 'admin'",uId );
-         q = esql.executeQuery(query);
-	if(q == 1 ){
-	//Functionality of admin
-	//Admin should be able to update any product
-	System.out.println("Welcome admin, select a storeID: ");
-	String storeId = in.readLine();
-	query = String.format("SELECT * from Store S WHERE S.storeID = '%s'", storeId);
+   public static void placeProductSupplyRequests(Retail esql) {}
+   public static void viewOrders(Retail esql){
+	 try{
+        //Check if user is an admin or not
+        String query = String.format("SELECT * FROM Users WHERE userID = '%s' AND type = 'admin'",uId );
+        int q = esql.executeQuery(query);
+        if(q == 1){//User is an admin
+ 		query = "Select * FROM Orders";
+                q = esql.executeQueryAndPrintResult(query);
+                return;
+        }
+        query = String.format("SELECT * FROM Users WHERE userID = '%s' AND type = 'manager'",uId );
         q = esql.executeQuery(query);
-	//Check if a selected store exists, if not, keep looping until store
-	while( q == 0)
-{
-	System.out.println("Selected Store does not exists, select a valid storeID: ");
-	storeId = in.readLine();
-
-	query = String.format("SELECT * from Store S WHERE S.storeID = '%s'", storeId);
-        q = esql.executeQuery(query);	
-}	
-//Get product information
-	System.out.println("Select the product that you want to update: ");
-        String productName = in.readLine();
-	query = String.format("SELECT * FROM Product WHERE storeID = '%s' AND productName = '%s'", storeId, productName);
-       //Check if the selected product exist
-        q = esql.executeQuery(query);
-       //If not exists, keep looping until get a valid product name
-	 while(q == 0)
- {
-        System.out.println("Your selected product does not exists, select another product: ");
-        productName = in.readLine();
-        query = String.format("SELECT * FROM Product WHERE storeID = '%s' AND productName = '%s'", storeId, productName);
-        q = esql.executeQuery(query);
-}
-
-	System.out.println("\tEnter how many you want to order:  ");
-        String numberOfUnits = in.readLine();
-
-        System.out.println("\tEnter from which warehouse you want to order from ");
-        String warehouseID = in.readLine();
-
-        System.out.println(" Successful!");
-	//Update the new information into the product relation
-   	query = String.format("UPDATE Product SET numberOfUnits = numberOfUnits + '%s' WHERE storeID = '%s' AND productName = '%s'", numberOfUnits, storeId, productName);        
-	esql.executeUpdate(query);
-	//Update the new update information into the ProductUpdates relation
-	query = String.format("INSERT INTO ProductUpdates( managerID,storeID,productName,updatedOn) VALUES('%s','%s','%s',NOW())", uId, storeId, productName );
-        esql.executeUpdate(query);
-	query = String.format("INSERT INTO ProductSupplyRequests( managerID,warehouseID,storeID,productName,unitsRequested) VALUES('%s','%s','%s','%s','%s')", uId, warehouseID,storeId, productName, numberOfUnits );
-        esql.executeUpdate(query);
-
-	}//End functionality of admin
-
-	else{ //Start functionality of the manager
-	System.out.println("Enter a store ID: ");
-	String storeId = in.readLine();
-	//Check if the this manager manages the store
-	query = String.format("SELECT * FROM STORE WHERE storeID = '%s' AND managerID = '%s'", storeId,uId);
-	//q = esql.executeQueryAndPrintResult(query);
-	q = esql.executeQuery(query);
-	//Keep looping until the user enter a valid storeId
-	while( q == 0)
-{
-	System.out.println("Sorry you'are not managing this store, select another store: ");
-	storeId = in.readLine();	
-	query = String.format("SELECT * FROM STORE WHERE storeID = '%s' AND managerID = '%s'", storeId,uId);
- 
-       //q = esql.executeQueryAndPrintResult(query);
-        q = esql.executeQuery(query);
-
-}
-	System.out.println("You are managing this store!");
-	System.out.println("Select the product that you want to update: ");
-	String productName = in.readLine();
-	//Check if the product exists in the store;
-	query = String.format("SELECT * FROM Product WHERE storeID = '%s' AND productName = '%s'", storeId, productName);
-	//q = esql.executeQueryAndPrintResult(query);
-	q = esql.executeQuery(query);
-	while(q == 0) //Product is not inside the store, loop until get the valid product
-{
-	System.out.println("Your selected product does not exists, select another product: ");
-	productName = in.readLine();
-	query = String.format("SELECT * FROM Product WHERE storeID = '%s' AND productName = '%s'", storeId, productName);
-	q = esql.executeQuery(query);	
-}	
-	//Get the numberOfUnits and pricePerUnit 
-	System.out.println("\tHow many units would you like to order: ");
-	String numberOfUnits = in.readLine();
-
-	System.out.println("\tWhat warehouse would you like to order from?:  ");
-	String warehouseID = in.readLine();
-
-	System.out.println(" Successful!");
-	//Update the new information into the product relation
-   query = String.format("UPDATE Product SET numberOfUnits = numberOfUnits + '%s' WHERE storeID = '%s' AND productName = '%s'", numberOfUnits, storeId, productName);
-   esql.executeUpdate(query);
-	//Update the new update information into the ProductUpdates relation
-	query = String.format("INSERT INTO ProductUpdates( managerID,storeID,productName, updatedOn) VALUES('%s','%s','%s',NOW())", uId, storeId, productName );
-	esql.executeUpdate(query);
-	query = String.format("INSERT INTO ProductSupplyRequests( managerID,warehouseID,storeID,productName,unitsRequested) VALUES('%s','%s','%s','%s','%s')", uId, warehouseID,storeId, productName, numberOfUnits );
-        esql.executeUpdate(query);
-
-}
-	}catch(Exception e){
+ 	if(q == 1){//User is an manager
+	 	query = String.format("SELECT DISTINCT O.orderNumber as orderID, U.name as customer_name, O.storeID, O.productName, O.orderTime as date FROM Orders O, Users U WHERE O.customerID = U.userID AND O.storeID IN (SELECT S.storeID FROM  Store S, Users U WHERE S.managerID = U.userID AND U.userID = '%s') ORDER by O.orderTime DESC", uId);
+                q = esql.executeQueryAndPrintResult(query);
+                return;
+        }
+	System.out.println("Unauthorised user, return to main menu!");
+	return;       
+        }catch(Exception e){
                 System.err.println (e.getMessage ());
         return;
         }
 
 };
-
-
-
-public static void viewOrders(Retail esql){
-	try{
-	String query = String.format("SELECT * FROM Users WHERE userID = '%s' AND type = 'admin'", uId);
-	int q = esql.executeQuery(query);
-	if(q == 1){
-		query = "SELECT * FROM Orders";
-		q = esql.executeQueryAndPrintResult(query);
-		return;
-	}
-	query = String.format("SELECT * FROM Users WHERE userID = '%s' AND type = 'manager'", uId);
-	q = esql.executeQuery(query);
-	if(q == 1){
-		query = String.format("SELECT DISTINCT O.orderNumber as orderID, U.name as customer_name, O.storeID, O.productName, O.orderTime as date FROM Orders O,Users U WHERE O.customerID = U.userID AND O.storeID in (SELECT S.storeID FROM  Store S, Users U WHERE S.managerID = U.userID AND U.userID = '%s') ORDER BY O.orderTime DESC", uId);
-		q = esql.executeQueryAndPrintResult(query);
-		return;
-	}	
-	System.out.println("Unauthorised user, return to main menu!");
-	return;
-	}catch(Exception e){
-		System.err.println(e.getMessage());
-		return;
-	}
-};
-
-
-
    public static void viewUsers(Retail esql){
 	 try{
         //Check if user is an admin or not
@@ -1088,4 +964,5 @@ public static void viewOrders(Retail esql){
         return false;
         }
 }
-};
+	 
+}
